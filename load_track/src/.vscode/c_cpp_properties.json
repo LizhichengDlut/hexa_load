@@ -1,0 +1,58 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/lizhicheng/catkin_ws/devel/include/**",
+        "/home/lizhicheng/master/devel/include/**",
+        "/home/lizhicheng/UAV/devel/include/**",
+        "/opt/ros/melodic/include/**",
+        "/home/lizhicheng/catkin_ws/src/apriltag2_catkin/include/**",
+        "/home/lizhicheng/catkin_ws/src/apriltag2_ros/include/**",
+        "/home/lizhicheng/catkin_ws/src/apriltag_ros/apriltag_ros/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/fast_planner/bspline/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/fast_planner/bspline_opt/include/**",
+        "/home/lizhicheng/catkin_ws/src/mavros_controllers/controller_msgs/include/**",
+        "/home/lizhicheng/catkin_ws/src/cv_camera/include/**",
+        "/home/lizhicheng/catkin_ws/src/force/include/**",
+        "/home/lizhicheng/catkin_ws/src/mavros_controllers/geometric_controller/include/**",
+        "/home/lizhicheng/catkin_ws/src/mavros/libmavconn/include/**",
+        "/home/lizhicheng/catkin_ws/src/load_track/include/**",
+        "/home/lizhicheng/catkin_ws/src/mav_comm/mav_msgs/include/**",
+        "/home/lizhicheng/catkin_ws/src/mav_comm/mav_planning_msgs/include/**",
+        "/home/lizhicheng/catkin_ws/src/mavros/mavros/include/**",
+        "/home/lizhicheng/catkin_ws/src/mavros_apriltag_tracking/include/**",
+        "/home/lizhicheng/catkin_ws/src/mavros/mavros_msgs/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/uav_simulator/Utils/multi_map_server/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/fast_planner/path_searching/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/fast_planner/plan_env/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/fast_planner/plan_manage/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/fast_planner/poly_traj/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/uav_simulator/Utils/pose_utils/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/uav_simulator/Utils/quadrotor_msgs/include/**",
+        "/home/lizhicheng/UAV/src/rotors_simulator/rotors_control/include/**",
+        "/home/lizhicheng/UAV/src/rotors_simulator/rotors_gazebo_plugins/include/**",
+        "/home/lizhicheng/UAV/src/rotors_simulator/rotors_hil_interface/include/**",
+        "/home/lizhicheng/UAV/src/rotors_simulator/rotors_joy_interface/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/uav_simulator/so3_control/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/uav_simulator/so3_disturbance_generator/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/uav_simulator/so3_quadrotor_simulator/include/**",
+        "/home/lizhicheng/catkin_ws/src/mavros/test_mavros/include/**",
+        "/home/lizhicheng/master/src/mavros_controllers-master/tools/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/fast_planner/traj_utils/include/**",
+        "/home/lizhicheng/catkin_ws/src/mavros_controllers/trajectory_publisher/include/**",
+        "/home/lizhicheng/catkin_ws/src/Fast-Planner/uav_simulator/Utils/uav_utils/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
