@@ -16,6 +16,7 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <mav_msgs/RollPitchYawrateThrust.h>
 #include <mavros_msgs/PositionTarget.h>
 #include <dynamic_reconfigure/server.h>
@@ -48,10 +49,10 @@ double traj_omega = 1.3;
 const Eigen::Vector3d traj_axis(0,0,1);
 const Eigen::Vector3d omega_d(traj_omega*e3);
 const Eigen::Vector3d traj_radial(1,0,0);
-const Eigen::Vector3d traj_origin(0,0,4);
+const Eigen::Vector3d traj_origin(0,0,1.5);
 const double radius (5);
 int type(1);                              //traj_type
-Eigen::Vector3d xd,vd,ad(0,0,0),qd(0,0,0),q_dotd(0,0,0);
+Eigen::Vector3d x_target(0,0,1),xd,vd,ad(0,0,0),qd(0,0,0),q_dotd(0,0,0);
 Eigen::Vector3d q,dot_q;
 Eigen::Vector3d A;
 Eigen::Vector3d Fn,Fpd,Fff,F;
@@ -113,19 +114,20 @@ Eigen::Vector3d getPosition(double time)
     Eigen::Vector3d position;
     double theta;
     switch(type){
-        case 1:
+        case TRAJ_CIRCLE:
         theta = traj_omega *time;
         position = std::cos(theta) * traj_radial + std::sin(theta) * traj_axis.cross(traj_radial) +
                  (1 - std::cos(theta)) * traj_axis.dot(traj_radial) * traj_axis + traj_origin;
         break;
-        case 2:
-        theta = traj_omega * time;
-        position = std::cos(theta) * traj_radial + std::sin(theta) * std::cos(theta) * traj_axis.cross(traj_radial) +
-                 (1 - std::cos(theta)) * traj_axis.dot(traj_radial) * traj_axis + traj_origin;
+        case TRAJ_LAMNISCATE:
+        position = x_target;
+        // theta = traj_omega * time;
+        // position = std::cos(theta) * traj_radial + std::sin(theta) * std::cos(theta) * traj_axis.cross(traj_radial) +
+        //          (1 - std::cos(theta)) * traj_axis.dot(traj_radial) * traj_axis + traj_origin;
         break;
-        case 3:  // Lemniscate of Genero
+        case TRAJ_STATIONARY:  // Lemniscate of Genero
 
-        position = traj_origin;
+        position << 0.0, 0.0, 1.0;
         break;
 
     }
@@ -149,11 +151,13 @@ Eigen::Vector3d getVelocity(double time) {
 
     case TRAJ_LAMNISCATE:  // Lemniscate of Genero
 
-      theta = traj_omega * time;
-      velocity = traj_omega *
-                 (-std::sin(theta) * traj_radial +
-                  (std::pow(std::cos(theta), 2) - std::pow(std::sin(theta), 2)) * traj_axis.cross(traj_radial) +
-                  (std::sin(theta)) * traj_axis.dot(traj_radial) * traj_axis);
+    velocity <<0.0, 0.0, 0.0;
+
+      // theta = traj_omega * time;
+      // velocity = traj_omega *
+      //            (-std::sin(theta) * traj_radial +
+      //             (std::pow(std::cos(theta), 2) - std::pow(std::sin(theta), 2)) * traj_axis.cross(traj_radial) +
+      //             (std::sin(theta)) * traj_axis.dot(traj_radial) * traj_axis);
       break;
 
     default:
@@ -175,6 +179,8 @@ Eigen::Vector3d getAcceleration(double time) {
     
       acceleration << 0.0, 0.0, 0.0;
       break;
+    case TRAJ_LAMNISCATE:
+      acceleration << 0.0, 0.0, 0.0;
     default:
       acceleration << 0.0, 0.0, 0.0;
       break;
@@ -200,6 +206,19 @@ void posCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 void velCallback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
   v = toEigen(msg->twist.linear);
+}
+
+void flagCallback(const nav_msgs::Odometry::ConstPtr& msg)
+{
+  if (msg->child_frame_id == "1")
+    type = 3;
+  else if (msg->child_frame_id == "2")
+  {
+    type = 2;
+    x_target = toEigen(msg->pose.pose.position);
+  }
+  else if(msg->child_frame_id == "3")
+  type = 1;
 }
 
 void ReconfigCallback(load_track::load_trackConfig &config, uint32_t level)
@@ -274,6 +293,7 @@ int main(int argc, char **argv)
     ros::Subscriber sub = n.subscribe("/gazebo/link_states", 100, link_0PoseCallback);
     ros::Subscriber pos_sub = n.subscribe("/mavros/local_position/pose", 100, posCallback);
     ros::Subscriber vel_sub = n.subscribe("/mavros/local_position/velocity_local", 100, velCallback);
+    ros::Subscriber flag_sub = n.subscribe("/cyb_flags", 100, flagCallback);
     dynamic_reconfigure::Server<load_track::load_trackConfig> server;
     dynamic_reconfigure::Server<load_track::load_trackConfig>::CallbackType f;
     f = boost::bind(&ReconfigCallback,_1,_2);
@@ -302,8 +322,8 @@ int main(int argc, char **argv)
     vd = getVelocity(time);
     ad = getAcceleration(time);
 
-    ex = xd - x;   //use UAV position or load position
-    // ex = xd - xl;
+    ex = xd - xl;   //use UAV position or load position
+    // ex = xd - x;
     // ex.x() = 1 - xl.x();
     // ex.y() = 1 - xl.y(); 
     // ex.z() = 4 - xl.z();   
@@ -313,11 +333,12 @@ int main(int argc, char **argv)
     // ex.z() = 4 - x.z();   
                             
     // vd =  1*ex;
-    // ev = vd -vl;
+    ev = vd -vl;
+        // ev = vd - v;
     // ev.x() = vd.x() - vl.x();
     // ev.y() = vd.y() - vl.y();
     // ev.z() = vd.z() - vl.z();
-    ev = vd - v;
+
 
     // ev.x() = vd.x() - v.x();
     // ev.y() = vd.y() - v.y();
@@ -336,7 +357,7 @@ int main(int argc, char **argv)
 
     dot_q = omega_l.cross(q);
 
-    if(x.z()>=1.5){
+    if(x.z()>=0.5){
       e_i += (Kpv_.asDiagonal() * ex - ev)*0.01;
     }
     Eigen::Vector3d a_i = Ki_.asDiagonal() * e_i;
@@ -364,7 +385,8 @@ int main(int argc, char **argv)
   if (a_fb.norm() > max_fb_acc_)
     a_fb = (max_fb_acc_ / a_fb.norm()) * a_fb;  // Clip acceleration if reference is too large
 
-  const Eigen:: Vector3d a_des = a_fb + ad + a_i - g_; 
+  const Eigen:: Vector3d a_des = a_fb + ad + a_i - g_ + l*(dot_q.dot(dot_q))*q; 
+    // const Eigen:: Vector3d a_des = a_fb + ad + a_i - g_; 
   // msg.acceleration_or_force.x = 0.01 * a_des.x();
   // msg.acceleration_or_force.y = 0.01 * a_des.y();
   // msg.acceleration_or_force.z = 0.05 * a_des.z(); 
@@ -430,7 +452,7 @@ int main(int argc, char **argv)
     msg.yaw = 0; 
 
   setrawPub.publish(msg);
-
+                                                                                                                                                                                                 
 
     // F = Fn - Fpd;
 
